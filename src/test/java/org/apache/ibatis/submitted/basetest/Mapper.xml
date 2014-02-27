@@ -20,6 +20,8 @@
 
 <mapper namespace="org.apache.ibatis.submitted.basetest.Mapper">
 
+	<cache></cache>
+
 	<select id="getUser" resultType="org.apache.ibatis.submitted.basetest.User">
 		select * from users where id = #{id}
 	</select>

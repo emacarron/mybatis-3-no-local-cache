@@ -77,7 +77,7 @@ public class BatchExecutor extends BaseExecutor {
     try {
       flushStatements();
       Configuration configuration = ms.getConfiguration();
-      StatementHandler handler = configuration.newStatementHandler(this, ms, parameterObject, rowBounds, resultHandler, boundSql);
+      StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameterObject, rowBounds, resultHandler, boundSql);
       Connection connection = getConnection(ms.getStatementLog());
       stmt = handler.prepare(connection);
       handler.parameterize(stmt);

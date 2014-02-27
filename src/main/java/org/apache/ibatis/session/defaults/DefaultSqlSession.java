@@ -228,7 +228,7 @@ public class DefaultSqlSession implements SqlSession {
   }
 
   public void clearCache() {
-    executor.clearLocalCache();
+//    executor.clearLocalCache();
   }
 
   private boolean isCommitOrRollbackRequired(boolean force) {

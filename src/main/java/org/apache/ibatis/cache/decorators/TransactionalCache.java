@@ -20,9 +20,11 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ibatis.cache.Cache;
+import org.apache.ibatis.cache.impl.PerpetualCache;
 
 public class TransactionalCache implements Cache {
 
+  private PerpetualCache buffer;
   private Cache delegate;
   private boolean clearOnCommit;
   private Map<Object, AddEntry> entriesToAddOnCommit;
@@ -33,6 +35,7 @@ public class TransactionalCache implements Cache {
     this.clearOnCommit = false;
     this.entriesToAddOnCommit = new HashMap<Object, AddEntry>();
     this.entriesToRemoveOnCommit = new HashMap<Object, RemoveEntry>();
+    this.buffer = new PerpetualCache("2ndLevelCacheBuffer");
   }
 
   public String getId() {
@@ -45,12 +48,16 @@ public class TransactionalCache implements Cache {
 
   public Object getObject(Object key) {
     if (clearOnCommit) return null; // issue #146
-    delegate.getReadWriteLock().readLock().lock();
-    try {
-      return delegate.getObject(key);
-    } finally {
-      delegate.getReadWriteLock().readLock().unlock();
+    Object object = buffer.getObject(key);
+    if (object == null) {
+      delegate.getReadWriteLock().readLock().lock();
+      try {
+        object = delegate.getObject(key);
+      } finally {
+        delegate.getReadWriteLock().readLock().unlock();
+      }
     }
+    return object;
   }
 
   public ReadWriteLock getReadWriteLock() {
@@ -58,11 +65,13 @@ public class TransactionalCache implements Cache {
   }
 
   public void putObject(Object key, Object object) {
+    buffer.putObject(key, object);
     entriesToRemoveOnCommit.remove(key);
     entriesToAddOnCommit.put(key, new AddEntry(delegate, key, object));
   }
 
   public Object removeObject(Object key) {
+    buffer.removeObject(key);
     entriesToAddOnCommit.remove(key);
     entriesToRemoveOnCommit.put(key, new RemoveEntry(delegate, key));
     return delegate.getObject(key);
@@ -97,6 +106,7 @@ public class TransactionalCache implements Cache {
   }
 
   private void reset() {
+    buffer.clear();
     clearOnCommit = false;
     entriesToRemoveOnCommit.clear();
     entriesToAddOnCommit.clear();

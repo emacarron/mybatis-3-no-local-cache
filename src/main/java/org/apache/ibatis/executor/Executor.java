@@ -21,7 +21,6 @@ import java.util.List;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
@@ -44,16 +43,12 @@ public interface Executor {
 
   CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql);
 
-  boolean isCached(MappedStatement ms, CacheKey key);
-
-  void clearLocalCache();
-
-  void deferLoad(MappedStatement ms, MetaObject resultObject, String property, CacheKey key, Class<?> targetType);
-
   Transaction getTransaction();
 
   void close(boolean forceRollback);
 
   boolean isClosed();
+  
+  void setExecutorWrapper(Executor executor);
 
 }

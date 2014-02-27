@@ -26,7 +26,6 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.ParameterMode;
 import org.apache.ibatis.mapping.StatementType;
-import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
@@ -38,6 +37,7 @@ public class CachingExecutor implements Executor {
 
   public CachingExecutor(Executor delegate) {
     this.delegate = delegate;
+    delegate.setExecutorWrapper(this);
   }
 
   public Transaction getTransaction() {
@@ -124,23 +124,16 @@ public class CachingExecutor implements Executor {
     return delegate.createCacheKey(ms, parameterObject, rowBounds, boundSql);
   }
 
-  public boolean isCached(MappedStatement ms, CacheKey key) {
-    throw new UnsupportedOperationException("The CachingExecutor should not be used by result loaders and thus isCached() should never be called.");
-  }
-
-  public void deferLoad(MappedStatement ms, MetaObject resultObject, String property, CacheKey key, Class<?> targetType) {
-    throw new UnsupportedOperationException("The CachingExecutor should not be used by result loaders and thus deferLoad() should never be called.");
-  }
-
-  public void clearLocalCache() {
-    delegate.clearLocalCache();
-  }
-
   private void flushCacheIfRequired(MappedStatement ms) {
     Cache cache = ms.getCache();
     if (cache != null && ms.isFlushCacheRequired()) {      
       tcm.clear(cache);
     }
+  }
+
+  @Override
+  public void setExecutorWrapper(Executor executor) {
+    throw new UnsupportedOperationException("Nobody should call this method");
   }
 
 }

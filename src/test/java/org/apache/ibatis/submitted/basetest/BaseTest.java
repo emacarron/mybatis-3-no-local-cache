@@ -55,6 +55,7 @@ public class BaseTest {
     try {
       Mapper mapper = sqlSession.getMapper(Mapper.class);
       User user = mapper.getUser(1);
+      user = mapper.getUser(1);
       Assert.assertEquals("User1", user.getName());
     } finally {
       sqlSession.close();
